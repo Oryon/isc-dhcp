@@ -949,6 +949,10 @@ static unsigned print_subexpression (expr, buf, len)
 		s = "client-address";
 		goto astring;
 
+	      case expr_interface:
+	    s = "interface";
+	    goto astring;
+
 	      case expr_client_state:
 		s = "client-state";
 		goto astring;

@@ -1063,6 +1063,7 @@ int evaluate_boolean_expression (result, packet, lease, client_state,
 	      case expr_config_option:
 	      case expr_leased_address:
 	      case expr_client_address:
+	      case expr_interface:
 	      case expr_null:
 	      case expr_filename:
 	      case expr_sname:
@@ -1858,6 +1859,30 @@ int evaluate_data_expression (result, packet, lease, client_state,
 #endif
 		return 1;
 
+	      case expr_interface:
+		if (!packet || !packet -> interface) {
+			log_debug("data: \"interface\" configuration "
+					"directive: there is no packet or interface "
+					"associated with this context.");
+			return 0;
+		}
+		result -> len = strlen(packet -> interface -> name) + 1;
+		if (buffer_allocate (&result -> buffer, result -> len,
+				file, line)) {
+			result -> data = &result -> buffer -> data [0];
+			memcpy (&result -> buffer -> data [0],
+					packet -> interface -> name, result -> len + 1);
+			result -> terminated = 1;
+		} else {
+			log_error ("data: interface: no memory.");
+			return 0;
+		}
+#if defined (DEBUG_EXPRESSIONS)
+		log_debug ("data: interface = %s",
+				(const char *)result -> data);
+#endif
+		return 1;
+
 	      case expr_pick_first_value:
 		memset (&data, 0, sizeof data);
 		if ((evaluate_data_expression
@@ -2256,6 +2281,7 @@ int evaluate_numeric_expression (result, packet, lease, client_state,
 	      case expr_config_option:
 	      case expr_leased_address:
 	      case expr_client_address:
+	      case expr_interface:
 	      case expr_null:
 	      case expr_gethostname:
 	      case expr_v6relay:
@@ -2974,6 +3000,7 @@ void expression_dereference (eptr, file, line)
 		/* No subexpressions. */
 	      case expr_leased_address:
 	      case expr_client_address:
+	      case expr_interface:
 	      case expr_lease_time:
 	      case expr_filename:
 	      case expr_sname:
@@ -3035,6 +3062,7 @@ int is_data_expression (expr)
 		expr->op == expr_host_decl_name ||
 		expr->op == expr_leased_address ||
 		expr->op == expr_client_address ||
+		expr->op == expr_interface ||
 		expr->op == expr_config_option ||
 		expr->op == expr_null ||
 		expr->op == expr_gethostname ||
@@ -3121,6 +3149,7 @@ static int op_val (op)
 	      case expr_config_option:
 	      case expr_leased_address:
 	      case expr_client_address:
+	      case expr_interface:
 	      case expr_lease_time:
 	      case expr_dns_transaction:
 	      case expr_null:
@@ -3220,6 +3249,7 @@ enum expression_context op_context (op)
 	      case expr_config_option:
 	      case expr_leased_address:
 	      case expr_client_address:
+	      case expr_interface:
 	      case expr_lease_time:
 	      case expr_null:
 	      case expr_variable_reference:
@@ -3574,6 +3604,11 @@ int write_expression (file, expr, col, indent, firstp)
 		col = token_print_indent (file, col, indent, "", "",
 					  "client-address");
 		break;
+
+	      case expr_interface:
+	    col = token_print_indent (file, col, indent, "", "",
+	    		"interface");
+	    break;
 
 	      case expr_client_state:
 		col = token_print_indent (file, col, indent, "", "",

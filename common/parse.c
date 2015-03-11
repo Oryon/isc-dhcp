@@ -3958,6 +3958,13 @@ int parse_non_binary (expr, cfile, lose, context)
 		(*expr) -> op = expr_client_address;
 		break;
 
+	      case INTERFACE:
+	    skip_token(&val, (unsigned *)0, cfile);
+	    if (!expression_allocate (expr, MDL))
+	      	log_fatal ("can't allocate expression");
+	    (*expr) -> op = expr_interface;
+	    break;
+
 	      case CLIENT_STATE:
 		skip_token(&val, (unsigned *)0, cfile);
 		if (!expression_allocate (expr, MDL))
